@@ -73,4 +73,4 @@ python mf_import_csv.py data.csv
 
 ## 作者
 
-このスクリプトは[GitHubユーザー名]によって開発・管理されています。
+このスクリプトはnanosnsによって開発・管理されています。
