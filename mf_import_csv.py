@@ -2,6 +2,9 @@ import sys
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 import csv
 import time
 
@@ -21,7 +24,11 @@ try:
     print("Start :" + input_file)
 
     # Chromeブラウザを立ち上げる
-    driver = webdriver.Chrome()
+    options = webdriver.ChromeOptions()
+    # Windowsでは NUL, mac/linuxでは /dev/null にログを捨てる
+    options.add_argument("--log-level=3")  
+    options.add_experimental_option('excludeSwitches', ['enable-logging'])
+    driver = webdriver.Chrome(options=options)
     driver.implicitly_wait(10)   #wait
     # マネーフォワードの銀行ページに遷移
     driver.get(url)
@@ -36,6 +43,35 @@ try:
     elem = driver.find_element(By.ID, "mfid_user[password]")
     elem.clear()
     elem.send_keys(password, Keys.ENTER)
+
+    # ここでOTP入力画面が出る場合があるので対応
+    optauth = False
+    try:
+        otp_elem = WebDriverWait(driver, 2).until(
+            EC.presence_of_element_located((By.NAME, "otp_attempt"))
+        )
+        otp_code = input("２段階認証コードを入力してください: ")
+        otp_elem.clear()
+        otp_elem.send_keys(otp_code, Keys.ENTER)
+        print("２段階認証コードを送信しました。")
+        optauth = True
+    except TimeoutException:
+        # OTPフォームが出てこなければそのまま先へ
+        print("２段階認証コード入力画面が表示されませんでした。")
+
+    # 2段階認証無効時は追加認証画面が出てくる場合がある
+    if optauth == False:
+        try:
+            otp_elem = WebDriverWait(driver, 2).until(
+                EC.presence_of_element_located((By.NAME, "email_otp"))
+            )
+            otp_code = input("追加認証コードを入力してください: ")
+            otp_elem.clear()
+            otp_elem.send_keys(otp_code, Keys.ENTER)
+            print("追加認証コードを送信しました。")
+        except TimeoutException:
+            # OTPフォームが出てこなければそのまま先へ
+            print("追加認証コード入力画面は表示されませんでした。")
 
     # open data file
     # ◆CSVファイルフォーマット
@@ -137,12 +173,12 @@ try:
         elem.send_keys(content)
 
         #「保存」ボタンクリック
-        # time.sleep(1)
-        # elem = driver.find_element(By.ID, "submit-button")
+        time.sleep(1)
+        elem = driver.find_element(By.ID, "submit-button")
 
         # （以下、テストコード）Closeボタン「×」をクリックして保存しない
-        time.sleep(3)
-        elem = driver.find_element(By.CLASS_NAME,"close")
+        # time.sleep(3)
+        # elem = driver.find_element(By.CLASS_NAME,"close")
 
         elem.click()        
         time.sleep(5)
@@ -150,3 +186,4 @@ try:
 
 finally:
     print("End :" + input_file)
+    driver.quit()
