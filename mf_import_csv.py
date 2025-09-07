@@ -7,11 +7,12 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 import csv
 import time
+import os
 
 
-url = "https://moneyforward.com/accounts/show_manual/xxxxxxxxxxxxxxx" #インポート先の口座URL
-user = "<自分のアカウント>"
-password = "<自分のパスワード>" 
+url = os.environ['MF_URL'] # インポート先の口座URL
+user = os.environ['MF_USER'] # 自分のアカウント
+password = os.environ['MF_PASSWORD'] # 自分のパスワード
 
 
 if len(sys.argv) != 2:
