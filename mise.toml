@@ -1,0 +1,10 @@
+[tools]
+python = "3.13" # [optional] will be used for the venv
+
+[env]
+_.python.venv = { path = ".venv", create = true } # create the venv if it doesn't exist
+
+[tasks.setup]
+run = """
+pip install -r requirements.txt
+"""
